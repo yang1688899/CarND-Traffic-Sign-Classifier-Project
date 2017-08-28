@@ -57,6 +57,7 @@ Here is an exploratory visualization of the data set:
 ![alt text][image1]
 
 It is a bar chart showing distribution of the training data:
+
 ![alt text][image2]
 
 
