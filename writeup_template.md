@@ -127,7 +127,7 @@ Here are German traffic signs that I found on the web:
 
 ![alt text][image3]
 
-The first image might be difficult to classify because ...
+All the image are taken at night and some of them have flash point on it, which will make it a lot more harder for the model to recognize.
 
 ####2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
 
@@ -152,10 +152,27 @@ The softmax probabilities of the new images:
 
 ![alt text][image5]
 
-For the first image, the model is relatively sure that this is a stop sign (probability of 0.6), and the image does contain a stop sign. The top five soft max probabilities were
+For the first image, the model is defintely sure that this is a go straight or left sign (above 0.9 probability), and the image does contain a go straight or left sign.
 
+For the second image, the model is defintely sure that this is a keep right sign (probability of 1.0), and the image does contain a keep right sign.
 
-For the second image ... 
+For the third image, the model is defintely sure that this is a no entry sign (probability of 1.0), and the image does contain a no entry sign.
+
+For the fourth image, the model is defintely sure that this is a no vehicle sign (close to probability of 1.0), and the image does contain a no vehicle sign.
+
+For the fifth image, the model is defintely sure that this is a priority road sign (probability of 1.0), and the image does contain a priority road sign.
+
+For the sixth image, the model is defintely sure that this is a yield sign (probability of 1.0), and the image does contain a yield sign.
+
+For the seventh image, the model is confused. It predict 0.53 probability for  speed limit(30km/h) and 0.45 for speed limit(80km/h), while the image actually contain a speed limit(20km/h). Thing become really wired while the model dealing with speed limit sighs.
+
+For the eighth image, the model predict 0.82 probability for ahead only and 0.18 for go straight or right, while the image actually contain a ahead only sign. The model make a petty good prediction in this case.
+
+For the nineth image, the model pridict 1.0 probability for speed limit(60km/h) while the image actually contain a speed limit(50km/h) sign. The model is totally wrong is this case.
+
+For the tenth image, the model pridict 1.0 probability for speed limit(80km/h) while the image actually contain a speed limit(80km/h) sign. At last a speed limit sigh is rightfully classfied by the model.
+
+From what we have above, the model seems to be doing a great job to classified the sign image except the speed limit signs.
 
 ### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
 ####1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
