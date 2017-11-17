@@ -1,20 +1,13 @@
-## Project: Build a Traffic Sign Recognition Program
+## **交通标志识别**
 [![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
-#**Traffic Sign Recognition** 
 
----
+**实现步骤：**
 
-**Build a Traffic Sign Recognition Project**
-
-The goals / steps of this project are the following:
-* Load the data set (see below for links to the project data set)
-* Explore, summarize and visualize the data set
-* Design, train and test a model architecture
-* Use the model to make predictions on new images
-* Analyze the softmax probabilities of the new images
-* Summarize the results with a written report
-
+* 加载数据
+* 分析，预处理数据
+* 设计，训练，测试模型
+* 使用模型测试对新的图片进行预测
 
 [//]: # (Image References)
 
@@ -25,35 +18,33 @@ The goals / steps of this project are the following:
 [image5]: ./image/5.png "Traffic Sign prediction distribution"
 
 
-## Rubric Points
-###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  
+###加载数据
 
----
-###Writeup / README
+由于提供的数据存放在pickle文件中，直接使用pickle加载即可:
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one. You can submit your writeup as markdown or pdf. You can use this template as a guide for writing the report. The submission includes the project code.
+```
+training_file = 'I:/traffic-signs-data/train.p'
+validation_file= 'I:/traffic-signs-data/valid.p'
+testing_file = 'I:/traffic-signs-data/test.p'
+with open(training_file, mode='rb') as f:
+    train = pickle.load(f)
+with open(validation_file, mode='rb') as f:
+    valid = pickle.load(f)
+with open(testing_file, mode='rb') as f:
+    test = pickle.load(f)
+    
+X_train, y_train = train['features'], train['labels']
+X_valid, y_valid = valid['features'], valid['labels']
+X_test, y_test = test['features'], test['labels']
+```
 
-You're reading it! and here is a link to my [project code](https://github.com/yang1688899/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
+###分析，预处理数据
+加载的数据包含了34799张训练图片(training set)，4410张校验图片(validation set)，12630张测试图片(test set)，均为32x32x3的图片，共43个分类。
 
-###Data Set Summary & Exploration
-
-####1. Provide a basic summary of the data set. In the code, the analysis should be done using python, numpy and/or pandas methods rather than hardcoding results manually.
-
-I used the numpy to calculate summary statistics of the traffic
-signs data set:
-
-* The size of training set is 34799
-* The size of the validation set is 12630
-* The size of test set is 4410
-* The shape of a traffic sign image is 32x32x3
-* The number of unique classes/labels in the data set is 43
-
-####2. Include an exploratory visualization of the dataset.
-
-Here is an exploratory visualization of the data set:
+以下为各分类下的图片展示:
 ![alt text][image1]
 
-It is a bar chart showing distribution of the training data:
+以下为训练数据集的的直方分布图:
 
 ![alt text][image2]
 
