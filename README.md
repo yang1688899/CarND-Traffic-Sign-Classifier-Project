@@ -17,8 +17,7 @@
 [image4]: ./image/4.png "Traffic Sign prediction"
 [image5]: ./image/5.png "Traffic Sign prediction distribution"
 
-
-###加载数据
+### 加载数据
 
 由于提供的数据存放在pickle文件中，直接使用pickle加载即可:
 
@@ -38,7 +37,7 @@ X_valid, y_valid = valid['features'], valid['labels']
 X_test, y_test = test['features'], test['labels']
 ```
 
-###分析，预处理数据
+### 分析，预处理数据
 加载的数据包含了34799张训练图片(training set)，4410张校验图片(validation set)，12630张测试图片(test set)，均为32x32x3的图片，共43个分类。
 
 以下为各分类下的图片展示:
@@ -69,9 +68,9 @@ for i in range(data.shape[0]):
 ```
 
 
-####2. Describe what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.
+### 设计，训练，测试模型
 
-My final model consisted of the following layers:
+最终的模型结构如下:
 
 | Layer         		|     Description	        					| 
 |:---------------------:|:---------------------------------------------:| 
@@ -88,6 +87,75 @@ My final model consisted of the following layers:
 |Fully Connected    	| outputs 84					                |
 | RELU          		|       									    |
 |Fully Connected    	| outputs 43					                |
+
+以下为实现代码:
+```
+#initialize weights
+def weight_variable(shape, stddev=0.1):
+    initial = tf.truncated_normal(shape, stddev=stddev)
+    return tf.Variable(initial)
+
+#initialize bias
+def bias_variable(shape, bais=0.1):
+    initial = tf.constant(bais, shape=shape)
+    return tf.Variable(initial)
+
+#conv2b
+def conv(x, w, b):
+    return tf.nn.conv2d(x, w, [1, 1, 1, 1], 'VALID')+b
+
+#2x2 maxpooling
+def max_pool_2x2(x):
+    return tf.nn.max_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
+```
+```
+x = tf.placeholder(tf.float32, (None, 32, 32, 1))
+y = tf.placeholder(tf.int32, (None))
+one_hot_y = tf.one_hot(y, n_classes)
+# Hyperparameters
+mu = 0
+sigma = 0.1
+
+# Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
+conv1_w = weight_variable(shape=(5, 5, 1, 6))
+conv1_b = bias_variable(shape=[6])
+conv1 = conv(x,conv1_w,conv1_b)
+
+#Activation
+conv1_act = tf.nn.relu(conv1)
+
+# Pooling. Input = 28x28x6. Output = 14x14x6.
+pool1 = max_pool_2x2(conv1_act)
+
+# Convolutional. Output = 10x10x16.
+conv2_w = weight_variable(shape=(5, 5, 6, 16))
+conv2_b = bias_variable(shape=[16])
+conv2 = conv(pool1,conv2_w,conv2_b)
+
+#Activation
+conv2_act = tf.nn.relu(conv2)
+
+# Pooling. Input = 10x10x16. Output = 5x5x16.
+pool2 = max_pool_2x2(conv2_act)
+
+# Flatten. Input = 5x5x16. Output = 400.
+f1 = flatten(pool2)
+
+# Layer 3: Fully Connected. Input = 400. Output = 120.
+fc1_w  = tf.Variable(tf.truncated_normal(shape=(400, 120), mean = mu, stddev = sigma))
+fc1_b = tf.Variable(tf.zeros(120))
+fc1 = tf.nn.relu( tf.matmul(f1, fc1_w) + fc1_b )
+
+# Layer 4: Fully Connected. Input = 120. Output = 84.
+fc2_w  = tf.Variable(tf.truncated_normal(shape=(120, 84), mean = mu, stddev = sigma))
+fc2_b = tf.Variable(tf.zeros(84))
+fc2 = tf.nn.relu( tf.matmul(fc1, fc2_w) + fc2_b )
+
+# Fully Connected. Input = 84. Output = 43.
+fc3_w  = tf.Variable(tf.truncated_normal(shape=(84, 43), mean = mu, stddev = sigma))
+fc3_b = tf.Variable(tf.zeros(43))
+logits = tf.matmul(fc2, fc3_w) + fc3_b
+```
  
 
 
