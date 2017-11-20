@@ -49,23 +49,19 @@ X_test, y_test = test['features'], test['labels']
 ![alt text][image2]
 
 
-###Design and Test a Model Architecture
-
-####1. Describe how you preprocessed the image data. What techniques were chosen and why did you choose these techniques? Consider including images showing the output of each preprocessing technique. Pre-processing refers to techniques such as converting to grayscale, normalization, etc. (OPTIONAL: As described in the "Stand Out Suggestions" part of the rubric, if you generated additional data for training, describe why you decided to generate additional data, how you generated the data, and provide example images of the additional data. Then describe the characteristics of the augmented training set like number of images in the set, number of images for each class, etc.)
-
-As a first step, I decided to convert the images to a single channel img, it helps to reduce training time and filter the unrelated information.
+训练图片有rgb三个颜色通道，这里把它转换为单颜色通道图片，这样可以减少训练时间已经提升模型的泛用性：
 ```
 #Convert to single channel Y
 data = 0.299 * data[:, :, :, 0] + 0.587 * data[:, :, :, 1] + 0.114 * data[:, :, :, 2]
 ```
 
-Second, i scale the values of img to [0,1]
+图片的每个像素值的区间为[0,255],这里需要把它normalize为值区间在[0,1]，以便更好的训练模型。
 ```
 #Scale features to be in [0, 1]
 data = (data / 255.).astype(np.float32)
 ```
 
-As a last step, I sharpen the image data using skiamge lab
+其中的一些图片的交通标志轮廓模糊，这里使用skimage库的equalize_adapthist()来增强图片对比度，从而使交通标志轮廓更明晰。
 ```
 #sharpen image
 for i in range(data.shape[0]):
