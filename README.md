@@ -17,8 +17,7 @@
 [image4]: ./image/4.png "Traffic Sign prediction"
 [image5]: ./image/5.png "Traffic Sign prediction distribution"
 
-
-###加载数据
+### 加载数据
 
 由于提供的数据存放在pickle文件中，直接使用pickle加载即可:
 
@@ -38,7 +37,7 @@ X_valid, y_valid = valid['features'], valid['labels']
 X_test, y_test = test['features'], test['labels']
 ```
 
-###分析，预处理数据
+### 分析，预处理数据
 加载的数据包含了34799张训练图片(training set)，4410张校验图片(validation set)，12630张测试图片(test set)，均为32x32x3的图片，共43个分类。
 
 以下为各分类下的图片展示:
@@ -49,23 +48,19 @@ X_test, y_test = test['features'], test['labels']
 ![alt text][image2]
 
 
-###Design and Test a Model Architecture
-
-####1. Describe how you preprocessed the image data. What techniques were chosen and why did you choose these techniques? Consider including images showing the output of each preprocessing technique. Pre-processing refers to techniques such as converting to grayscale, normalization, etc. (OPTIONAL: As described in the "Stand Out Suggestions" part of the rubric, if you generated additional data for training, describe why you decided to generate additional data, how you generated the data, and provide example images of the additional data. Then describe the characteristics of the augmented training set like number of images in the set, number of images for each class, etc.)
-
-As a first step, I decided to convert the images to a single channel img, it helps to reduce training time and filter the unrelated information.
+训练图片有rgb三个颜色通道，这里把它转换为单颜色通道图片，这样可以减少训练时间已经提升模型的泛用性：
 ```
 #Convert to single channel Y
 data = 0.299 * data[:, :, :, 0] + 0.587 * data[:, :, :, 1] + 0.114 * data[:, :, :, 2]
 ```
 
-Second, i scale the values of img to [0,1]
+图片的每个像素值的区间为[0,255],这里需要把它normalize为值区间在[0,1]，以便更好的训练模型。
 ```
 #Scale features to be in [0, 1]
 data = (data / 255.).astype(np.float32)
 ```
 
-As a last step, I sharpen the image data using skiamge lab
+其中的一些图片的交通标志轮廓模糊，这里使用skimage库的equalize_adapthist()来增强图片对比度，从而使交通标志轮廓更明晰。
 ```
 #sharpen image
 for i in range(data.shape[0]):
@@ -73,9 +68,9 @@ for i in range(data.shape[0]):
 ```
 
 
-####2. Describe what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.
+### 设计，训练，测试模型
 
-My final model consisted of the following layers:
+最终的模型结构如下:
 
 | Layer         		|     Description	        					| 
 |:---------------------:|:---------------------------------------------:| 
@@ -92,6 +87,75 @@ My final model consisted of the following layers:
 |Fully Connected    	| outputs 84					                |
 | RELU          		|       									    |
 |Fully Connected    	| outputs 43					                |
+
+以下为实现代码:
+```
+#initialize weights
+def weight_variable(shape, stddev=0.1):
+    initial = tf.truncated_normal(shape, stddev=stddev)
+    return tf.Variable(initial)
+
+#initialize bias
+def bias_variable(shape, bais=0.1):
+    initial = tf.constant(bais, shape=shape)
+    return tf.Variable(initial)
+
+#conv2b
+def conv(x, w, b):
+    return tf.nn.conv2d(x, w, [1, 1, 1, 1], 'VALID')+b
+
+#2x2 maxpooling
+def max_pool_2x2(x):
+    return tf.nn.max_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
+```
+```
+x = tf.placeholder(tf.float32, (None, 32, 32, 1))
+y = tf.placeholder(tf.int32, (None))
+one_hot_y = tf.one_hot(y, n_classes)
+# Hyperparameters
+mu = 0
+sigma = 0.1
+
+# Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
+conv1_w = weight_variable(shape=(5, 5, 1, 6))
+conv1_b = bias_variable(shape=[6])
+conv1 = conv(x,conv1_w,conv1_b)
+
+#Activation
+conv1_act = tf.nn.relu(conv1)
+
+# Pooling. Input = 28x28x6. Output = 14x14x6.
+pool1 = max_pool_2x2(conv1_act)
+
+# Convolutional. Output = 10x10x16.
+conv2_w = weight_variable(shape=(5, 5, 6, 16))
+conv2_b = bias_variable(shape=[16])
+conv2 = conv(pool1,conv2_w,conv2_b)
+
+#Activation
+conv2_act = tf.nn.relu(conv2)
+
+# Pooling. Input = 10x10x16. Output = 5x5x16.
+pool2 = max_pool_2x2(conv2_act)
+
+# Flatten. Input = 5x5x16. Output = 400.
+f1 = flatten(pool2)
+
+# Layer 3: Fully Connected. Input = 400. Output = 120.
+fc1_w  = tf.Variable(tf.truncated_normal(shape=(400, 120), mean = mu, stddev = sigma))
+fc1_b = tf.Variable(tf.zeros(120))
+fc1 = tf.nn.relu( tf.matmul(f1, fc1_w) + fc1_b )
+
+# Layer 4: Fully Connected. Input = 120. Output = 84.
+fc2_w  = tf.Variable(tf.truncated_normal(shape=(120, 84), mean = mu, stddev = sigma))
+fc2_b = tf.Variable(tf.zeros(84))
+fc2 = tf.nn.relu( tf.matmul(fc1, fc2_w) + fc2_b )
+
+# Fully Connected. Input = 84. Output = 43.
+fc3_w  = tf.Variable(tf.truncated_normal(shape=(84, 43), mean = mu, stddev = sigma))
+fc3_b = tf.Variable(tf.zeros(43))
+logits = tf.matmul(fc2, fc3_w) + fc3_b
+```
  
 
 
