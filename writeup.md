@@ -1,9 +1,5 @@
 #**Traffic Sign Recognition** 
 
-##Writeup Template
-
-###You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
 ---
 
 **Build a Traffic Sign Recognition Project**
@@ -34,7 +30,7 @@ The goals / steps of this project are the following:
 
 ####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one. You can submit your writeup as markdown or pdf. You can use this template as a guide for writing the report. The submission includes the project code.
 
-You're reading it! and here is a link to my [project code](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
+You're reading it! and here is a link to my [project code](https://github.com/yang1688899/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
 
 ###Data Set Summary & Exploration
 
@@ -111,7 +107,9 @@ To train the model, I used an AdamOptimizer with learning rate 0.001, batch size
 
 ####4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
-I choose LeNet architecture. This architecture was intruduce to me to classify handwriting digit in lession 8, which it prove to be a very powerful architecture for dealing with image recognition.
+At first I choose LeNet architecture. This architecture was intruduce to me to classify handwriting digit in lession 8, which it prove to be a very powerful architecture for dealing with image recognition.
+
+The LeNet architecture take 32x32x3 image as input, which isn't match what the data I used after precessing, which is 32x32x1 image, so I have to change the architeture to make it accept 32x32x1 image as input. And I also change the output to be 43 classes instead of 10.
 
 My final model results were:
 * training set accuracy of 1.000
@@ -138,6 +136,8 @@ Here are the results of the prediction:
 
 The model was able to correctly guess 8 of the 10 traffic signs, which gives an accuracy of 80%. The first one misclassified Speed Limit(20km/h) to Speed Limit(30km/h), the second one misclassified Speed Limit(60km/h) to Speed Limit(50km/h). Seem the model is a little bit confused about the diffrence of diffrent Speed Limit traffic signs.
 
+Compare with the test set accuracy of 0.967, the accuracy on the new image seems to be too low, but consider it's only 10 sample, it is hard to say that the model is not doing well.
+
 ####3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
 
 The code for making predictions on my final model：
@@ -148,6 +148,8 @@ with tf.Session() as sess:
     saver.restore(sess, './lenet')
     prediction = sess.run(predict,feed_dict={x:new_data_processed})
 ```
+
+The accuracy 
 The softmax probabilities of the new images:
 
 ![alt text][image5]
