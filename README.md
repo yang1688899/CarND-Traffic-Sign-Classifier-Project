@@ -48,7 +48,7 @@ X_test, y_test = test['features'], test['labels']
 ![alt text][image2]
 
 
-训练图片有rgb三个颜色通道，这里把它转换为单颜色通道图片，这样可以减少训练时间已经提升模型的泛用性：
+训练图片有rgb三个颜色通道，这里把它转换为单颜色通道图片，这样可以减少训练时间以及提升模型的泛用性：
 ```
 #Convert to single channel Y
 data = 0.299 * data[:, :, :, 0] + 0.587 * data[:, :, :, 1] + 0.114 * data[:, :, :, 2]
@@ -156,14 +156,55 @@ fc3_w  = tf.Variable(tf.truncated_normal(shape=(84, 43), mean = mu, stddev = sig
 fc3_b = tf.Variable(tf.zeros(43))
 logits = tf.matmul(fc2, fc3_w) + fc3_b
 ```
- 
 
+使用学习率(learning rate)为0.001的AdamOptimizer来训练模型，损失函数(loss function)为cross entropy, batch size为128, epochs为20。
+```
+rate = 0.001
 
-####3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
+cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_y, logits=logits)
+loss_operation = tf.reduce_mean(cross_entropy)
+optimizer = tf.train.AdamOptimizer(learning_rate = rate)
+training_operation = optimizer.minimize(loss_operation)
 
-To train the model, I used an AdamOptimizer with learning rate 0.001, batch size 128 and 50 epochs
+correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(one_hot_y, 1))
+accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+saver = tf.train.Saver()
 
-####4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
+def evaluate(X_data, y_data):
+    num_examples = len(X_data)
+    total_accuracy = 0
+    session = tf.get_default_session()
+    for offset in range(0, num_examples, BATCH_SIZE):
+        batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
+        accuracy = session.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y})
+        total_accuracy += (accuracy * len(batch_x))
+    return total_accuracy / num_examples
+
+EPOCHS = 50
+BATCH_SIZE = 128
+
+with tf.Session() as session:
+    session.run(tf.global_variables_initializer())
+    num_examples = len(X_train)
+    
+    print("Training...")
+    print()
+    for i in range(EPOCHS):
+        X_train, y_train = shuffle(X_train, y_train)
+        for offset in range(0, num_examples, BATCH_SIZE):
+            end = offset + BATCH_SIZE
+            batch_x, batch_y = X_train[offset:end], y_train[offset:end]
+            session.run(training_operation, feed_dict={x: batch_x, y: batch_y})
+            
+        validation_accuracy = evaluate(X_valid, y_valid)
+        print("EPOCH {} ...".format(i+1))
+        print("Validation Accuracy = {:.3f}".format(validation_accuracy))
+        print()
+        
+    saver.save(session, './lenet')
+    print("Model saved")
+```
+### 
 
 At first I choose LeNet architecture. This architecture was intruduce to me to classify handwriting digit in lession 8, which it prove to be a very powerful architecture for dealing with image recognition.
 
