@@ -75,16 +75,14 @@ for i in range(data.shape[0]):
 | Layer         		|     Description	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | Input         		| 32x32x1 image   							    | 
-| Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x6 	|
+| Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x108 	|
 | RELU					|												|
-| Max pooling	      	| 2x2 stride,  outputs 14x14x6 				    |
-| Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x16   |
+| Max pooling	      	| 2x2 stride,  outputs 14x14x108 				    |
+| Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x200   |
 | RELU          		|       									    |
-|Max pooling     		| 2x2 stride,  outputs 5x5x16					|
-|Flatten				| outputs 400									|
-|Fully Connected    	| outputs 120					                |
-| RELU          		|       									    |
-|Fully Connected    	| outputs 84					                |
+|Max pooling     		| 2x2 stride,  outputs 5x5x200					|
+|Flatten				| outputs 47052									|
+|Fully Connected    	| outputs 50					                |
 | RELU          		|       									    |
 |Fully Connected    	| outputs 43					                |
 
@@ -116,45 +114,42 @@ one_hot_y = tf.one_hot(y, n_classes)
 mu = 0
 sigma = 0.1
 
-# Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
-conv1_w = weight_variable(shape=(5, 5, 1, 6))
-conv1_b = bias_variable(shape=[6])
+# Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x108.
+conv1_w = weight_variable(shape=(5, 5, 1, 108))
+conv1_b = bias_variable(shape=[108])
 conv1 = conv(x,conv1_w,conv1_b)
 
 #Activation
-conv1_act = tf.nn.relu(conv1)
+conv1_act = tf.nn.tanh(conv1)
 
-# Pooling. Input = 28x28x6. Output = 14x14x6.
-pool1 = max_pool_2x2(conv1_act)
+#Pooling. Input = 28x28x108. Output = 14x14x108.
+pool1 = max_pool_4x4(conv1_act)
 
-# Convolutional. Output = 10x10x16.
-conv2_w = weight_variable(shape=(5, 5, 6, 16))
-conv2_b = bias_variable(shape=[16])
-conv2 = conv(pool1,conv2_w,conv2_b)
+# Convolutional. Output = 10x10x200.
+conv2_w = weight_variable(shape=(5, 5, 108, 200))
+conv2_b = bias_variable(shape=[200])
+conv2 = conv(conv1,conv2_w,conv2_b)
 
 #Activation
-conv2_act = tf.nn.relu(conv2)
+conv2_act = tf.nn.tanh(conv2)
 
-# Pooling. Input = 10x10x16. Output = 5x5x16.
+#Pooling. Input = 10x10x200. Output = 5x5x200.
 pool2 = max_pool_2x2(conv2_act)
 
-# Flatten. Input = 5x5x16. Output = 400.
-f1 = flatten(pool2)
+# Flatten. Input = 5x5x200. Output = 47052.
+f1 = flatten(pool1)
+f2 = flatten(pool2)
+f_conct = tf.concat([f1,f2],1)
 
-# Layer 3: Fully Connected. Input = 400. Output = 120.
-fc1_w  = tf.Variable(tf.truncated_normal(shape=(400, 120), mean = mu, stddev = sigma))
-fc1_b = tf.Variable(tf.zeros(120))
-fc1 = tf.nn.relu( tf.matmul(f1, fc1_w) + fc1_b )
-
-# Layer 4: Fully Connected. Input = 120. Output = 84.
-fc2_w  = tf.Variable(tf.truncated_normal(shape=(120, 84), mean = mu, stddev = sigma))
-fc2_b = tf.Variable(tf.zeros(84))
-fc2 = tf.nn.relu( tf.matmul(fc1, fc2_w) + fc2_b )
+# Layer 3: Fully Connected. Input = 47052. Output = 50.
+fc1_w  = tf.Variable(tf.truncated_normal(shape=(47052, 50), mean = mu, stddev = sigma))
+fc1_b = tf.Variable(tf.zeros(50))
+fc1 = tf.nn.tanh( tf.matmul(f_conct, fc1_w) + fc1_b )
 
 # Fully Connected. Input = 84. Output = 43.
-fc3_w  = tf.Variable(tf.truncated_normal(shape=(84, 43), mean = mu, stddev = sigma))
-fc3_b = tf.Variable(tf.zeros(43))
-logits = tf.matmul(fc2, fc3_w) + fc3_b
+fc2_w  = tf.Variable(tf.truncated_normal(shape=(50, 43), mean = mu, stddev = sigma))
+fc2_b = tf.Variable(tf.zeros(43))
+logits = tf.matmul(fc1, fc2_w) + fc2_b
 ```
 
 使用学习率(learning rate)为0.001的AdamOptimizer来训练模型，损失函数(loss function)为cross entropy, batch size为128, epochs为20。
