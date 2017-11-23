@@ -76,14 +76,14 @@ for i in range(data.shape[0]):
 |:---------------------:|:---------------------------------------------:| 
 | Input         		| 32x32x1 image   							    | 
 | Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x108 	|
-| RELU					|												|
+| Tanh					|												|
 | Max pooling	      	| 2x2 stride,  outputs 14x14x108 				    |
 | Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x200   |
-| RELU          		|       									    |
+| Tanh          		|       									    |
 |Max pooling     		| 2x2 stride,  outputs 5x5x200					|
 |Flatten				| outputs 47052									|
 |Fully Connected    	| outputs 50					                |
-| RELU          		|       									    |
+| Tanh          		|       									    |
 |Fully Connected    	| outputs 43					                |
 
 以下为实现代码:
@@ -199,6 +199,8 @@ with tf.Session() as session:
     saver.save(session, './lenet')
     print("Model saved")
 ```
+
+最终在测试数据集得到94.1%的准确率。
 ### 
 
 At first I choose LeNet architecture. This architecture was intruduce to me to classify handwriting digit in lession 8, which it prove to be a very powerful architecture for dealing with image recognition.
