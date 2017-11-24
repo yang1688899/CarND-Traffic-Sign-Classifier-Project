@@ -204,15 +204,19 @@ with tf.Session() as session:
 
 
 ### 使用模型测试对新的图片进行预测
-
+以下为网上找的10张交通标志图片：
 
 ![alt text][image3]
+
+图片的光照环境较差，且有一些图片有明显的闪光点。
 
 All the image are taken at night and some of them have flash point on it, which will make it a lot more harder for the model to recognize.
 
 ####2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
 
 Here are the results of the prediction:
+
+以下为图片的预测结果：
 
 ![alt text][image4]
 
