@@ -201,23 +201,10 @@ with tf.Session() as session:
 ```
 
 最终在测试数据集得到94.1%的准确率。
-### 
 
-At first I choose LeNet architecture. This architecture was intruduce to me to classify handwriting digit in lession 8, which it prove to be a very powerful architecture for dealing with image recognition.
 
-The LeNet architecture take 32x32x3 image as input, which isn't match what the data I used after precessing, which is 32x32x1 image, so I have to change the architeture to make it accept 32x32x1 image as input. And I also change the output to be 43 classes instead of 10.
+### 使用模型测试对新的图片进行预测
 
-My final model results were:
-* training set accuracy of 1.000
-* validation set accuracy of 0.943
-* test set accuracy of 0.967
- 
-
-###Test a Model on New Images
-
-####1. Choose five German traffic signs found on the web and provide them in the report. For each image, discuss what quality or qualities might be difficult to classify.
-
-Here are German traffic signs that I found on the web:
 
 ![alt text][image3]
 
