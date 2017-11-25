@@ -48,7 +48,7 @@ X_test, y_test = test['features'], test['labels']
 ![alt text][image2]
 
 
-训练图片有rgb三个颜色通道，这里把它转换为单颜色通道图片，这样可以减少训练时间已经提升模型的泛用性：
+训练图片有rgb三个颜色通道，这里把它转换为单颜色通道图片，这样可以减少训练时间以及提升模型的泛用性：
 ```
 #Convert to single channel Y
 data = 0.299 * data[:, :, :, 0] + 0.587 * data[:, :, :, 1] + 0.114 * data[:, :, :, 2]
@@ -75,17 +75,15 @@ for i in range(data.shape[0]):
 | Layer         		|     Description	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | Input         		| 32x32x1 image   							    | 
-| Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x6 	|
-| RELU					|												|
-| Max pooling	      	| 2x2 stride,  outputs 14x14x6 				    |
-| Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x16   |
-| RELU          		|       									    |
-|Max pooling     		| 2x2 stride,  outputs 5x5x16					|
-|Flatten				| outputs 400									|
-|Fully Connected    	| outputs 120					                |
-| RELU          		|       									    |
-|Fully Connected    	| outputs 84					                |
-| RELU          		|       									    |
+| Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x108 	|
+| Tanh					|												|
+| Max pooling	      	| 2x2 stride,  outputs 14x14x108 				    |
+| Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x200   |
+| Tanh          		|       									    |
+|Max pooling     		| 2x2 stride,  outputs 5x5x200					|
+|Flatten				| outputs 47052									|
+|Fully Connected    	| outputs 50					                |
+| Tanh          		|       									    |
 |Fully Connected    	| outputs 43					                |
 
 以下为实现代码:
@@ -116,125 +114,119 @@ one_hot_y = tf.one_hot(y, n_classes)
 mu = 0
 sigma = 0.1
 
-# Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
-conv1_w = weight_variable(shape=(5, 5, 1, 6))
-conv1_b = bias_variable(shape=[6])
+# Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x108.
+conv1_w = weight_variable(shape=(5, 5, 1, 108))
+conv1_b = bias_variable(shape=[108])
 conv1 = conv(x,conv1_w,conv1_b)
 
 #Activation
-conv1_act = tf.nn.relu(conv1)
+conv1_act = tf.nn.tanh(conv1)
 
-# Pooling. Input = 28x28x6. Output = 14x14x6.
-pool1 = max_pool_2x2(conv1_act)
+#Pooling. Input = 28x28x108. Output = 14x14x108.
+pool1 = max_pool_4x4(conv1_act)
 
-# Convolutional. Output = 10x10x16.
-conv2_w = weight_variable(shape=(5, 5, 6, 16))
-conv2_b = bias_variable(shape=[16])
-conv2 = conv(pool1,conv2_w,conv2_b)
+# Convolutional. Output = 10x10x200.
+conv2_w = weight_variable(shape=(5, 5, 108, 200))
+conv2_b = bias_variable(shape=[200])
+conv2 = conv(conv1,conv2_w,conv2_b)
 
 #Activation
-conv2_act = tf.nn.relu(conv2)
+conv2_act = tf.nn.tanh(conv2)
 
-# Pooling. Input = 10x10x16. Output = 5x5x16.
+#Pooling. Input = 10x10x200. Output = 5x5x200.
 pool2 = max_pool_2x2(conv2_act)
 
-# Flatten. Input = 5x5x16. Output = 400.
-f1 = flatten(pool2)
+# Flatten. Input = 5x5x200. Output = 47052.
+f1 = flatten(pool1)
+f2 = flatten(pool2)
+f_conct = tf.concat([f1,f2],1)
 
-# Layer 3: Fully Connected. Input = 400. Output = 120.
-fc1_w  = tf.Variable(tf.truncated_normal(shape=(400, 120), mean = mu, stddev = sigma))
-fc1_b = tf.Variable(tf.zeros(120))
-fc1 = tf.nn.relu( tf.matmul(f1, fc1_w) + fc1_b )
-
-# Layer 4: Fully Connected. Input = 120. Output = 84.
-fc2_w  = tf.Variable(tf.truncated_normal(shape=(120, 84), mean = mu, stddev = sigma))
-fc2_b = tf.Variable(tf.zeros(84))
-fc2 = tf.nn.relu( tf.matmul(fc1, fc2_w) + fc2_b )
+# Layer 3: Fully Connected. Input = 47052. Output = 50.
+fc1_w  = tf.Variable(tf.truncated_normal(shape=(47052, 50), mean = mu, stddev = sigma))
+fc1_b = tf.Variable(tf.zeros(50))
+fc1 = tf.nn.tanh( tf.matmul(f_conct, fc1_w) + fc1_b )
 
 # Fully Connected. Input = 84. Output = 43.
-fc3_w  = tf.Variable(tf.truncated_normal(shape=(84, 43), mean = mu, stddev = sigma))
-fc3_b = tf.Variable(tf.zeros(43))
-logits = tf.matmul(fc2, fc3_w) + fc3_b
+fc2_w  = tf.Variable(tf.truncated_normal(shape=(50, 43), mean = mu, stddev = sigma))
+fc2_b = tf.Variable(tf.zeros(43))
+logits = tf.matmul(fc1, fc2_w) + fc2_b
 ```
- 
+
+使用学习率(learning rate)为0.001的AdamOptimizer来训练模型，损失函数(loss function)为cross entropy, batch size为128, epochs为20。
+```
+rate = 0.001
+
+cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_y, logits=logits)
+loss_operation = tf.reduce_mean(cross_entropy)
+optimizer = tf.train.AdamOptimizer(learning_rate = rate)
+training_operation = optimizer.minimize(loss_operation)
+
+correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(one_hot_y, 1))
+accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+saver = tf.train.Saver()
+
+def evaluate(X_data, y_data):
+    num_examples = len(X_data)
+    total_accuracy = 0
+    session = tf.get_default_session()
+    for offset in range(0, num_examples, BATCH_SIZE):
+        batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
+        accuracy = session.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y})
+        total_accuracy += (accuracy * len(batch_x))
+    return total_accuracy / num_examples
+
+EPOCHS = 50
+BATCH_SIZE = 128
+
+with tf.Session() as session:
+    session.run(tf.global_variables_initializer())
+    num_examples = len(X_train)
+    
+    print("Training...")
+    print()
+    for i in range(EPOCHS):
+        X_train, y_train = shuffle(X_train, y_train)
+        for offset in range(0, num_examples, BATCH_SIZE):
+            end = offset + BATCH_SIZE
+            batch_x, batch_y = X_train[offset:end], y_train[offset:end]
+            session.run(training_operation, feed_dict={x: batch_x, y: batch_y})
+            
+        validation_accuracy = evaluate(X_valid, y_valid)
+        print("EPOCH {} ...".format(i+1))
+        print("Validation Accuracy = {:.3f}".format(validation_accuracy))
+        print()
+        
+    saver.save(session, './lenet')
+    print("Model saved")
+```
+
+最终在测试数据集得到94.1%的准确率。
 
 
-####3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
-
-To train the model, I used an AdamOptimizer with learning rate 0.001, batch size 128 and 50 epochs
-
-####4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
-
-At first I choose LeNet architecture. This architecture was intruduce to me to classify handwriting digit in lession 8, which it prove to be a very powerful architecture for dealing with image recognition.
-
-The LeNet architecture take 32x32x3 image as input, which isn't match what the data I used after precessing, which is 32x32x1 image, so I have to change the architeture to make it accept 32x32x1 image as input. And I also change the output to be 43 classes instead of 10.
-
-My final model results were:
-* training set accuracy of 1.000
-* validation set accuracy of 0.943
-* test set accuracy of 0.967
- 
-
-###Test a Model on New Images
-
-####1. Choose five German traffic signs found on the web and provide them in the report. For each image, discuss what quality or qualities might be difficult to classify.
-
-Here are German traffic signs that I found on the web:
+### 使用模型测试对新的图片进行预测
+以下为网上找的10张交通标志图片：
 
 ![alt text][image3]
 
-All the image are taken at night and some of them have flash point on it, which will make it a lot more harder for the model to recognize.
+图片的光照环境较差，且有一些图片有明显的闪光点。
 
-####2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
-
-Here are the results of the prediction:
+以下为图片的预测结果：
 
 ![alt text][image4]
 
-
-The model was able to correctly guess 8 of the 10 traffic signs, which gives an accuracy of 80%. The first one misclassified Speed Limit(20km/h) to Speed Limit(30km/h), the second one misclassified Speed Limit(60km/h) to Speed Limit(50km/h). Seem the model is a little bit confused about the diffrence of diffrent Speed Limit traffic signs.
-
-Compare with the test set accuracy of 0.967, the accuracy on the new image seems to be too low, but consider it's only 10 sample, it is hard to say that the model is not doing well.
-
-####3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
-
-The code for making predictions on my final model：
-```
-predict = tf.argmax(logits,1)
-with tf.Session() as sess:
-    saver = tf.train.import_meta_graph('lenet.meta')
-    saver.restore(sess, './lenet')
-    prediction = sess.run(predict,feed_dict={x:new_data_processed})
-```
-
-The accuracy 
-The softmax probabilities of the new images:
+以下为各图片的前5个预测：
 
 ![alt text][image5]
 
-For the first image, the model is defintely sure that this is a go straight or left sign (above 0.9 probability), and the image does contain a go straight or left sign.
 
-For the second image, the model is defintely sure that this is a keep right sign (probability of 1.0), and the image does contain a keep right sign.
+十张图片准确预测了七张，其中错误的预测均为速度限制类交通标志,可以看出模型在辨识交通标志中的数字方面表现并不理想
 
-For the third image, the model is defintely sure that this is a no entry sign (probability of 1.0), and the image does contain a no entry sign.
+以下为第一层CNN捕捉到的"NO ENTRY"交通标志的特征图:
 
-For the fourth image, the model is defintely sure that this is a no vehicle sign (close to probability of 1.0), and the image does contain a no vehicle sign.
 
-For the fifth image, the model is defintely sure that this is a priority road sign (probability of 1.0), and the image does contain a priority road sign.
+以下为第一层CNN捕捉到的"SPEED LIMMITS 20KM/H"交通标志的特征图：
 
-For the sixth image, the model is defintely sure that this is a yield sign (probability of 1.0), and the image does contain a yield sign.
+可以看到模型对简单的几何图形特征可以清晰捕捉，但对于数字则有点模糊了
 
-For the seventh image, the model is confused. It predict 0.53 probability for  speed limit(30km/h) and 0.45 for speed limit(80km/h), while the image actually contain a speed limit(20km/h). Thing become really wired while the model dealing with speed limit sighs.
-
-For the eighth image, the model predict 0.82 probability for ahead only and 0.18 for go straight or right, while the image actually contain a ahead only sign. The model make a petty good prediction in this case.
-
-For the nineth image, the model pridict 1.0 probability for speed limit(60km/h) while the image actually contain a speed limit(50km/h) sign. The model is totally wrong is this case.
-
-For the tenth image, the model pridict 1.0 probability for speed limit(80km/h) while the image actually contain a speed limit(80km/h) sign. At last a speed limit sigh is rightfully classfied by the model.
-
-From what we have above, the model seems to be doing a great job to classified the sign image except the speed limit signs.
-
-### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
-####1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
 
 
