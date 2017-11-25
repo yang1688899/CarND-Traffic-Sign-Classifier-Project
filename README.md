@@ -16,6 +16,11 @@
 [image3]: ./image/3.png "german traffic signs"
 [image4]: ./image/4.png "Traffic Sign prediction"
 [image5]: ./image/5.png "Traffic Sign prediction distribution"
+[image6]: ./image/noEntryO.png
+[image7]: ./image/notEntry.png
+[image8]: ./image/speedLimmit20.png
+[image9]: ./image/speedLimmit20O.png
+[image10]: ./image/speedLimmit20.png
 
 ### 加载数据
 
@@ -48,25 +53,19 @@ X_test, y_test = test['features'], test['labels']
 ![alt text][image2]
 
 
-训练图片有rgb三个颜色通道，这里把它转换为单颜色通道图片，这样可以减少训练时间以及提升模型的泛用性：
+训练图片为rgb三个颜色通道，这里把它转换为YUA颜色空间（color space）的Y通道图片，这样可以减少训练时间以及提升模型的泛用性：
 ```
 #Convert to single channel Y
 data = 0.299 * data[:, :, :, 0] + 0.587 * data[:, :, :, 1] + 0.114 * data[:, :, :, 2]
 ```
+以下为转换前后对比:
+![alt text][image10]
 
 图片的每个像素值的区间为[0,255],这里需要把它normalize为值区间在[0,1]，以便更好的训练模型。
 ```
 #Scale features to be in [0, 1]
 data = (data / 255.).astype(np.float32)
 ```
-
-其中的一些图片的交通标志轮廓模糊，这里使用skimage库的equalize_adapthist()来增强图片对比度，从而使交通标志轮廓更明晰。
-```
-#sharpen image
-for i in range(data.shape[0]):
-    data[i] = exposure.equalize_adapthist(data[i])
-```
-
 
 ### 设计，训练，测试模型
 
@@ -222,9 +221,16 @@ with tf.Session() as session:
 十张图片准确预测了七张，其中错误的预测均为速度限制类交通标志,可以看出模型在辨识交通标志中的数字方面表现并不理想
 
 以下为第一层CNN捕捉到的"NO ENTRY"交通标志的特征图:
-
+原图：
+![alt text][image6]
+特征图：
+![alt text][image7]
 
 以下为第一层CNN捕捉到的"SPEED LIMMITS 20KM/H"交通标志的特征图：
+原图：
+![alt text][image8]
+特征图：
+![alt text][image9]
 
 可以看到模型对简单的几何图形特征可以清晰捕捉，但对于数字则有点模糊了
 
