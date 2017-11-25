@@ -20,7 +20,7 @@
 [image7]: ./image/notEntry.png
 [image8]: ./image/speedLimmit20.png
 [image9]: ./image/speedLimmit20O.png
-[image10]: ./image/speedLimmit20.png
+[image10]: ./image/y_channel.png
 
 ### 加载数据
 
@@ -59,6 +59,7 @@ X_test, y_test = test['features'], test['labels']
 data = 0.299 * data[:, :, :, 0] + 0.587 * data[:, :, :, 1] + 0.114 * data[:, :, :, 2]
 ```
 以下为转换前后对比:
+
 ![alt text][image10]
 
 图片的每个像素值的区间为[0,255],这里需要把它normalize为值区间在[0,1]，以便更好的训练模型。
@@ -221,14 +222,18 @@ with tf.Session() as session:
 十张图片准确预测了七张，其中错误的预测均为速度限制类交通标志,可以看出模型在辨识交通标志中的数字方面表现并不理想
 
 以下为第一层CNN捕捉到的"NO ENTRY"交通标志的特征图:
+
 原图：
 ![alt text][image6]
+
 特征图：
 ![alt text][image7]
 
 以下为第一层CNN捕捉到的"SPEED LIMMITS 20KM/H"交通标志的特征图：
+
 原图：
 ![alt text][image8]
+
 特征图：
 ![alt text][image9]
 
