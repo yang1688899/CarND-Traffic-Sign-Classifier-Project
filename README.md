@@ -210,60 +210,23 @@ with tf.Session() as session:
 
 图片的光照环境较差，且有一些图片有明显的闪光点。
 
-All the image are taken at night and some of them have flash point on it, which will make it a lot more harder for the model to recognize.
-
-####2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
-
-Here are the results of the prediction:
-
 以下为图片的预测结果：
 
 ![alt text][image4]
 
-
-The model was able to correctly guess 8 of the 10 traffic signs, which gives an accuracy of 80%. The first one misclassified Speed Limit(20km/h) to Speed Limit(30km/h), the second one misclassified Speed Limit(60km/h) to Speed Limit(50km/h). Seem the model is a little bit confused about the diffrence of diffrent Speed Limit traffic signs.
-
-Compare with the test set accuracy of 0.967, the accuracy on the new image seems to be too low, but consider it's only 10 sample, it is hard to say that the model is not doing well.
-
-####3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
-
-The code for making predictions on my final model：
-```
-predict = tf.argmax(logits,1)
-with tf.Session() as sess:
-    saver = tf.train.import_meta_graph('lenet.meta')
-    saver.restore(sess, './lenet')
-    prediction = sess.run(predict,feed_dict={x:new_data_processed})
-```
-
-The accuracy 
-The softmax probabilities of the new images:
+以下为各图片的前5个预测：
 
 ![alt text][image5]
 
-For the first image, the model is defintely sure that this is a go straight or left sign (above 0.9 probability), and the image does contain a go straight or left sign.
 
-For the second image, the model is defintely sure that this is a keep right sign (probability of 1.0), and the image does contain a keep right sign.
+十张图片准确预测了七张，其中错误的预测均为速度限制类交通标志,可以看出模型在辨识交通标志中的数字方面表现并不理想
 
-For the third image, the model is defintely sure that this is a no entry sign (probability of 1.0), and the image does contain a no entry sign.
+以下为第一层CNN捕捉到的"NO ENTRY"交通标志的特征图:
 
-For the fourth image, the model is defintely sure that this is a no vehicle sign (close to probability of 1.0), and the image does contain a no vehicle sign.
 
-For the fifth image, the model is defintely sure that this is a priority road sign (probability of 1.0), and the image does contain a priority road sign.
+以下为第一层CNN捕捉到的"SPEED LIMMITS 20KM/H"交通标志的特征图：
 
-For the sixth image, the model is defintely sure that this is a yield sign (probability of 1.0), and the image does contain a yield sign.
+可以看到模型对简单的几何图形特征可以清晰捕捉，但对于数字则有点模糊了
 
-For the seventh image, the model is confused. It predict 0.53 probability for  speed limit(30km/h) and 0.45 for speed limit(80km/h), while the image actually contain a speed limit(20km/h). Thing become really wired while the model dealing with speed limit sighs.
-
-For the eighth image, the model predict 0.82 probability for ahead only and 0.18 for go straight or right, while the image actually contain a ahead only sign. The model make a petty good prediction in this case.
-
-For the nineth image, the model pridict 1.0 probability for speed limit(60km/h) while the image actually contain a speed limit(50km/h) sign. The model is totally wrong is this case.
-
-For the tenth image, the model pridict 1.0 probability for speed limit(80km/h) while the image actually contain a speed limit(80km/h) sign. At last a speed limit sigh is rightfully classfied by the model.
-
-From what we have above, the model seems to be doing a great job to classified the sign image except the speed limit signs.
-
-### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
-####1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
 
 
