@@ -224,18 +224,22 @@ with tf.Session() as session:
 以下为第一层CNN捕捉到的"NO ENTRY"交通标志的特征图:
 
 原图：
+
 ![alt text][image6]
 
 特征图：
+
 ![alt text][image7]
 
 以下为第一层CNN捕捉到的"SPEED LIMMITS 20KM/H"交通标志的特征图：
 
 原图：
-![alt text][image8]
+
+![alt text][image9]
 
 特征图：
-![alt text][image9]
+
+![alt text][image8]
 
 可以看到模型对简单的几何图形特征可以清晰捕捉，但对于数字则有点模糊了
 
